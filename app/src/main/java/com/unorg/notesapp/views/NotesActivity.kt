@@ -39,20 +39,19 @@ class NotesActivity : AppCompatActivity() {
         val colors = intent?.getStringExtra("color")
 
         if (title != null && mainNote != null && colors != null) {
-            insert=false
-            update=true
-            notesId=id!!
-            setColor=colors!!
+            insert = false
+            update = true
+            notesId = id!!
+            setColor = colors!!
             binding.title.setText(title)
             binding.notes.setText(mainNote)
             val colorString = Color.parseColor(colors)
             binding.mainLayout.setBackgroundColor(colorString)
-        }
-        else{
-            insert=true
-            update=false
-            notesId=-1
-            setColor=null
+        } else {
+            insert = true
+            update = false
+            notesId = -1
+            setColor = null
         }
         adapter = ColorsAdapter(this, -1) { it ->
             showLogs("color", "$it")
@@ -63,15 +62,17 @@ class NotesActivity : AppCompatActivity() {
         binding.saveNotes.setOnClickListener {
             lifecycleScope.launch {
 
-                if (binding.title.text.isNullOrEmpty()) {
-                    showToast("Please Add Notes Title")
-                } else if (binding.notes.text.isNullOrEmpty()) {
-                    showToast("Please Add Notes Content")
-                } else if (color.isNullOrEmpty()) {
-                    showToast("Please Choose Color")
-                } else {
 
-                    if (insert) {
+
+                if (insert) {
+                    if (binding.title.text.isNullOrEmpty()) {
+                        showToast("Please Add Notes Title")
+                    } else if (binding.notes.text.isNullOrEmpty()) {
+                        showToast("Please Add Notes Content")
+                    } else if (color.isNullOrEmpty()) {
+                        showToast("Please Choose Color")
+                    }
+                    else{
                         val result = viewModel.insertNotes(
                             NoteTable(
                                 title = binding.title.text.toString(),
@@ -90,12 +91,41 @@ class NotesActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                    } else {
+                    }
 
-                        if(notesId!=-1){
+                }
+                else {
+
+                    if (notesId != -1) {
+                        if (!binding.title.text.toString().trim().isNullOrEmpty() &&
+                            !binding.notes.text.toString().trim().isNullOrEmpty() &&
+                            !setColor.isNullOrEmpty()
+                        ) {
                             val updateResult = myNotesViewModel.updateNotes(
                                 NoteTable(
-                                    id=notesId,
+                                    id = notesId,
+                                    title = binding.title.text.toString(),
+                                    mainNote = binding.notes.text.toString(),
+                                    color = setColor
+                                )
+                            )
+                            updateResult.flowOn(Dispatchers.IO).collect {
+                                when (it) {
+                                    is NoteHandler.Error -> showToast("${it.getMsg}")
+                                    is NoteHandler.Success -> {
+                                        if (it.getData > -1) {
+                                            finish()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (!binding.title.text.toString().trim().isNullOrEmpty() &&
+                            !binding.notes.text.toString().trim().isNullOrEmpty() &&
+                            setColor.isNullOrEmpty()) {
+                            val updateResult = myNotesViewModel.updateNotes(
+                                NoteTable(
+                                    id = notesId,
                                     title = binding.title.text.toString(),
                                     mainNote = binding.notes.text.toString(),
                                     color = color
@@ -112,12 +142,15 @@ class NotesActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                        else{
-                            showToast("Error while Updating")
+                        else if (binding.title.text.isNullOrEmpty()) {
+                            showToast("Please Add Notes Title")
+                        } else if (binding.notes.text.isNullOrEmpty()) {
+                            showToast("Please Add Notes Content")
                         }
+
+                    } else {
+                        showToast("Error while Updating")
                     }
-
-
                 }
 
             }
@@ -140,6 +173,6 @@ class NotesActivity : AppCompatActivity() {
         var insert: Boolean = false
         var update: Boolean = false
         var notesId: Int = -1
-        var setColor:String?=null
+        var setColor: String? = null
     }
 }
