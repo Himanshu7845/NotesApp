@@ -50,10 +50,10 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 if (s.toString().trim()!=null) {
-                    showLogs("oinpout","${s.toString().trim()}")
-                    getSearchNotes(s.toString().trim())
+                    showLogs("oinpout", s.toString().trim())
+                    getSearchNotes(s.toString().trim().lowercase())
                 } else {
-                    showLogs("oinpout","${s.toString().trim()}")
+                    showLogs("oinpout", s.toString().trim())
                     getNotes()
                 }
             }
@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                             binding.empty.visibility = View.GONE
                             binding.noData.visibility = View.GONE
                             val listData= it.getData.filter {
-                               it.title!!.contains(string)
+                               it.title?.lowercase()!!.contains(string)
                             }
                             list.addAll(listData)
                             notesAdapter.submitList(list)
